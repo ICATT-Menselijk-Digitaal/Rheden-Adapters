@@ -1,0 +1,21 @@
+# Build output
+bin/
+obj/
+
+# Certificates — never commit private keys or client certs
+*.key
+*.crt
+*.pem
+*.pfx
+*.p12
+
+# IDE
+.vs/
+.vscode/
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
+
+.env

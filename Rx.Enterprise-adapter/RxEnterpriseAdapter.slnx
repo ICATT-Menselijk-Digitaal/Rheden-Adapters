@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/RxEnterprise.Client/RxEnterprise.Client.csproj" />
+  <Project Path="src/RxEnterpriseWorker/RxEnterpriseWorker.csproj" />
+</Solution>
