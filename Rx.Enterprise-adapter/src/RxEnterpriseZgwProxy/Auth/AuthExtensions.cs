@@ -8,7 +8,7 @@ public static class AuthExtensions
     public static void AddZgwAuth(this IServiceCollection services, IConfiguration configuration)
     {
         services
-            .AddAuthentication()
+            .AddAuthentication("zgw")
             .AddJwtBearer("zgw", opts =>
             {
                 opts.TokenValidationParameters = new TokenValidationParameters
