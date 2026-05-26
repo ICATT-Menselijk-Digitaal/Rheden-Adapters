@@ -16,7 +16,7 @@ public static class CatalogiEndpoints
             var zaaktype = await rxClient.GetZaaktypeAsync(sleutel, ct);
             return Results.Ok(new ZgwZaaktype
             {
-                Identificatie = zaaktype.Sleutel ?? sleutel,
+                Id = zaaktype.Sleutel ?? sleutel,
                 Omschrijving = zaaktype.Onderwerp ?? string.Empty,
             });
         });

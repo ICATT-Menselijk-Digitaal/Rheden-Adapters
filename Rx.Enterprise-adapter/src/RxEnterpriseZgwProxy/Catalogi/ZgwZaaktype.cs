@@ -4,8 +4,8 @@ namespace RxEnterpriseZgwProxy.Catalogi;
 
 public record ZgwZaaktype
 {
-    [JsonPropertyName("identificatie")]
-    public required string Identificatie { get; init; }
+    [JsonPropertyName("id")]
+    public required string Id { get; init; }
 
     [JsonPropertyName("omschrijving")]
     public required string Omschrijving { get; init; }
