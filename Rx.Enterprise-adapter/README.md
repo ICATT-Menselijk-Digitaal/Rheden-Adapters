@@ -69,14 +69,10 @@ GET /zaken/api/v1/zaken/{id}
 
 | KISS/ZGW field | Rx.Enterprise field | Notes |
 | --- | --- | --- |
-| `url` | generated | `/zaken/api/v1/zaken/{sleutel}` |
-| `uuid` | `sleutel` | |
 | `identificatie` | `sleutel` | |
 | `omschrijving` | `betreft` | |
-| `bronorganisatie` | none | Empty string. |
 | `zaaktype` | `zaaktypesleutel` | URL: `/catalogi/api/v1/zaaktypen/{base64(zaaktypesleutel)}` |
 | `registratiedatum` | `boekdatum` | |
-| `startdatum` | `boekdatum` | |
 | `status` | `afhandelingsstatus` | URL: `/zaken/api/v1/statussen/{base64(afhandelingsstatus)}` |
 | `toelichting` | none | Empty string. |
 
@@ -105,13 +101,8 @@ The `{id}` is a URL-safe base64 encoding of the `afhandelingsstatus` value from 
 
 | KISS/ZGW field | Source | Notes |
 | --- | --- | --- |
-| `url` | generated | Echoes the requested URL. |
-| `uuid` | encoded status name | |
-| `zaak` | none | `null` |
 | `statustype` | generated | `/catalogi/api/v1/statustypen/{id}` |
-| `datumStatusGezet` | none | `null` |
 | `statustoelichting` | decoded status name | |
-| `indicatieLaatstGezetteStatus` | none | `null` |
 
 ### Catalogi
 
@@ -141,33 +132,35 @@ The `{id}` segment is always a URL-safe base64 encoding of the original key, wri
 
 ```text
 GET /zaken/api/v1/zaakinformatieobjecten?zaak=<zaak-url>
-GET /documenten/api/v1/enkelvoudiginformatieobjecten/{documentnummer}--{virtualid}
-GET /documenten/api/v1/enkelvoudiginformatieobjecten/{documentnummer}--{virtualid}/download
+GET /documenten/api/v1/enkelvoudiginformatieobjecten/{doelsleutel}
+GET /documenten/api/v1/enkelvoudiginformatieobjecten/{doelsleutel}/download
 ```
 
-For `zaakinformatieobjecten` the adapter fetches the zaak, reads `documentnummer`, then fetches the document metadata from Rx.Enterprise.
+For `zaakinformatieobjecten` the adapter calls `GET /api/zaak-document/search?search=[bronsleutel]="<zaaknummer>"`. Each element in the response array corresponds to one document attached to the zaak.
 
 | KISS/ZGW field | Rx.Enterprise field | Notes |
 | --- | --- | --- |
-| `uuid` | `{documentnummer}--{virtualid}` | Stable MD5-based UUID. |
+| `uuid` | `doelsleutel` | Stable MD5-based UUID derived from `doelsleutel`. |
 | `informatieobject` | generated | Points to the enkelvoudiginformatieobject endpoint. |
 | `zaak` | request `zaak` param | Echoed back. |
-| `registratiedatum` | `bijlagedatumtijd[virtualid - 1]` | |
+| `registratiedatum` | `doelbijlagedatumtijd[0]` | Unix ms timestamp, converted to `yyyy-MM-dd`. |
 | `aardRelatieWeergave` | none | Empty string. |
 | `titel`, `beschrijving` | none | Empty strings. |
 | `vernietigingsdatum`, `status` | none | `null` |
 
-For `enkelvoudiginformatieobjecten`:
+For `enkelvoudiginformatieobjecten`, the adapter calls `GET /api/zaak-document/search?search=[doelsleutel]="<id>"`:
 
 | KISS/ZGW field | Rx.Enterprise field | Notes |
 | --- | --- | --- |
 | `url` | generated | Echoes the requested URL. |
-| `identificatie` | `documentnummer` | |
+| `identificatie` | `doelsleutel` | |
 | `bronorganisatie` | none | Empty string. |
-| `creatiedatum` | `creatiedatum` | |
-| `titel` | `bijlageomschrijving[virtualid - 1]` | Falls back to filename. |
-| `vertrouwelijkheidaanduiding` | none | Fixed: `openbaar`. |
-| `formaat` | `bijlagecontenttype[virtualid - 1]` | Falls back to `application/octet-stream`. |
-| `bestandsnaam` | `bijlageinfo[].filename` | Matched by `virtualid`. |
-| `bestandsomvang` | `bijlagegrootte[virtualid - 1]` | Parsed as integer; falls back to `0`. |
+| `creatiedatum` | `doeldocumentdatum` | Unix ms timestamp, converted to `yyyy-MM-dd`. |
+| `titel` | `doeldocumenttitel` | |
+| `vertrouwelijkheidaanduiding` | none | Empty string. |
+| `formaat` | `doelbijlagecontenttype[0]` | Falls back to empty string. |
+| `bestandsnaam` | `doelbijlagenaam[0]` | |
+| `bestandsomvang` | `doelbijlagegrootte[0]` | Parsed as integer; falls back to `0`. |
 | `inhoud` | generated | `{url}/download` |
+
+For downloads, the adapter uses `doelbijlageurl[0]` when present. If absent, falls back to `data/document/{doelsleutel}/{doelbijlagenaam[0]}`.

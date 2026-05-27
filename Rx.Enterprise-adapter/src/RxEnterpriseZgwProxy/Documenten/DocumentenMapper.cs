@@ -4,30 +4,36 @@ namespace RxEnterpriseZgwProxy.Documenten;
 
 public static class DocumentenMapper
 {
-    public static ZgwEnkelvoudigInformatieObject ToEnkelvoudigInformatieObject(RxDocument doc, int virtualId, string selfUrl)
-    {
-        var idx = virtualId - 1;
-        var item = doc.Bijlageinfo?.FirstOrDefault(x => x.Virtualid == virtualId);
-
-        var filename = item?.Filename ?? string.Empty;
-        var contentType = doc.Bijlagecontenttype?.ElementAtOrDefault(idx) ?? "application/octet-stream";
-        var grootteStr = doc.Bijlagegrootte?.ElementAtOrDefault(idx);
-
-        return new ZgwEnkelvoudigInformatieObject
+    public static ZgwEnkelvoudigInformatieObject ToEnkelvoudigInformatieObject(RxZaakDocument doc, string selfUrl) =>
+        new()
         {
             Url = selfUrl,
-            Identificatie = doc.Documentnummer ?? string.Empty,
+            Identificatie = doc.Doelsleutel ?? string.Empty,
             Bronorganisatie = string.Empty,
-            Creatiedatum = doc.Creatiedatum ?? string.Empty,
-            Titel = doc.Bijlageomschrijving?.ElementAtOrDefault(idx) ?? filename,
-            Vertrouwelijkheidaanduiding = "openbaar",
-            Formaat = contentType,
-            Bestandsnaam = filename,
-            Bestandsomvang = int.TryParse(grootteStr, out var size) ? size : 0,
+            Creatiedatum = doc.Doeldocumentdatum ?? string.Empty,
+            Titel = doc.Doeldocumenttitel ?? string.Empty,
+            Vertrouwelijkheidaanduiding = string.Empty,
+            Formaat = doc.Doelbijlagecontenttype?.FirstOrDefault() ?? string.Empty,
+            Bestandsnaam = doc.Doelbijlagenaam?.FirstOrDefault() ?? string.Empty,
+            Bestandsomvang = int.TryParse(doc.Doelbijlagegrootte?.FirstOrDefault(), out var size) ? size : 0,
             Inhoud = $"{selfUrl}/download",
         };
-    }
 
-    public static string? FindAttachmentFilename(RxDocument doc, int virtualId) =>
-        doc.Bijlageinfo?.FirstOrDefault(x => x.Virtualid == virtualId)?.Filename;
+    public static string? GetDownloadUrl(RxZaakDocument doc)
+    {
+        var url = doc.Doelbijlageurl?.FirstOrDefault();
+        if (!string.IsNullOrEmpty(url)) 
+        {
+            return url;
+        }
+
+        var sleutel = doc.Doelsleutel;
+        var naam = doc.Doelbijlagenaam?.FirstOrDefault();
+        if (!string.IsNullOrEmpty(sleutel) && !string.IsNullOrEmpty(naam)) 
+        {
+            return $"/data/document/{Uri.EscapeDataString(sleutel)}/{Uri.EscapeDataString(naam)}";
+        }
+
+        return null;
+    }
 }

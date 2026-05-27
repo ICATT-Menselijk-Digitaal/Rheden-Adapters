@@ -73,7 +73,6 @@ public static class ZakenEndpoints
             return Results.Ok(ZakenMapper.ToZgwStatus(Base64Encoder.Decode(id), selfUrl, baseUrl));
         });
 
-        // Two-step: get zaak → extract documentnummer → get document → map bijlageinfo
         app.MapGet("/zaken/api/v1/zaakinformatieobjecten", async (
             HttpRequest request,
             IRxEnterpriseClient rxClient,
@@ -86,13 +85,8 @@ public static class ZakenEndpoints
             if (string.IsNullOrEmpty(zaakId))
                 return Results.Ok(Array.Empty<ZgwZaakInformatieObject>());
 
-            var zaak = await rxClient.GetZaakAsync(zaakId, ct);
-
-            if (string.IsNullOrEmpty(zaak.Documentnummer))
-                return Results.Ok(Array.Empty<ZgwZaakInformatieObject>());
-
-            var doc = await rxClient.GetDocumentAsync(zaak.Documentnummer, ct);
-            return Results.Ok(ZakenMapper.ToZaakInformatieObjecten(doc, zaakUrl, baseUrl));
+            var docs = await rxClient.SearchZaakDocumentsAsync(zaakId, ct);
+            return Results.Ok(ZakenMapper.ToZaakInformatieObjecten(docs, zaakUrl, baseUrl));
         });
         
         return app;

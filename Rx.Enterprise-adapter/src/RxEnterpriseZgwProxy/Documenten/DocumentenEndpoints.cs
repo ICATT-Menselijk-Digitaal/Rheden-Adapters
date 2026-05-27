@@ -27,41 +27,34 @@ public static class DocumentenEndpoints
             return Results.Stream(stream, contentType, resolvedName);
         });
 
-        // id is "{documentNummer}--{virtualId}" (e.g. D2025-01-000009--1)
+        // id is doelsleutel from zaak-document/search
         app.MapGet("/documenten/api/v1/enkelvoudiginformatieobjecten/{id}", async (
             string id,
             HttpRequest request,
             IRxEnterpriseClient rxClient,
             CancellationToken ct) =>
         {
-            var parts = id.Split("--");
-            if (parts.Length != 2 || !int.TryParse(parts[1], out var virtualId))
-                return Results.NotFound();
-
             var baseUrl = $"{request.Scheme}://{request.Host}";
             var selfUrl = $"{baseUrl}/documenten/api/v1/enkelvoudiginformatieobjecten/{Uri.EscapeDataString(id)}";
 
-            var doc = await rxClient.GetDocumentAsync(parts[0], ct);
-            return Results.Ok(DocumentenMapper.ToEnkelvoudigInformatieObject(doc, virtualId, selfUrl));
+            var doc = await rxClient.GetZaakDocumentAsync(id, ct);
+            if (doc is null) return Results.NotFound();
+
+            return Results.Ok(DocumentenMapper.ToEnkelvoudigInformatieObject(doc, selfUrl));
         });
 
-        // Resolves filename from document bijlageinfo then streams the binary
         app.MapGet("/documenten/api/v1/enkelvoudiginformatieobjecten/{id}/download", async (
             string id,
             IRxEnterpriseClient rxClient,
             CancellationToken ct) =>
         {
-            var parts = id.Split("--");
-            if (parts.Length != 2 || !int.TryParse(parts[1], out var virtualId))
+            var doc = await rxClient.GetZaakDocumentAsync(id, ct);
+            var downloadUrl = doc is not null ? DocumentenMapper.GetDownloadUrl(doc) : null;
+
+        if (string.IsNullOrEmpty(downloadUrl))
                 return Results.NotFound();
 
-            var doc = await rxClient.GetDocumentAsync(parts[0], ct);
-            var filename = DocumentenMapper.FindAttachmentFilename(doc, virtualId);
-
-            if (string.IsNullOrEmpty(filename))
-                return Results.NotFound();
-
-            var (stream, contentType, resolvedName) = await rxClient.DownloadDocumentAsync(parts[0], filename, ct);
+            var (stream, contentType, resolvedName) = await rxClient.DownloadFromRelativeUrlAsync(downloadUrl, ct);
             return Results.Stream(stream, contentType, resolvedName);
         });
 

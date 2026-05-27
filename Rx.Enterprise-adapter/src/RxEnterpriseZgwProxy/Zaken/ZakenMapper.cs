@@ -42,28 +42,26 @@ public static class ZakenMapper
         IndicatieLaatstGezetteStatus = null,
     };
 
-    public static ZgwZaakInformatieObject[] ToZaakInformatieObjecten(RxDocument doc, string zaakUrl, string baseUrl)
+    public static ZgwZaakInformatieObject[] ToZaakInformatieObjecten(
+        IEnumerable<RxZaakDocument> docs, string zaakUrl, string baseUrl)
     {
-        if (string.IsNullOrEmpty(doc.Documentnummer) || doc.Bijlageinfo is null)
-            return [];
-
-        return [.. doc.Bijlageinfo
-            .Where(item => item.Virtualid != 0)
-            .Select(item =>
+        return [.. docs
+            .Where(doc => !string.IsNullOrEmpty(doc.Doelsleutel))
+            .Select(doc =>
             {
-                var idx = item.Virtualid - 1;
-                var compoundId = $"{doc.Documentnummer}--{item.Virtualid}";
-                var uuid = DeriveUuid(compoundId);
+                var uuid = DeriveUuid(doc.Doelsleutel!);
                 return new ZgwZaakInformatieObject
                 {
                     Url = $"{baseUrl}/zaken/api/v1/zaakinformatieobjecten/{uuid}",
                     Uuid = uuid,
-                    Informatieobject = $"{baseUrl}/documenten/api/v1/enkelvoudiginformatieobjecten/{Uri.EscapeDataString(compoundId)}",
+                    Informatieobject = $"{baseUrl}/documenten/api/v1/enkelvoudiginformatieobjecten/{Uri.EscapeDataString(doc.Doelsleutel!)}",
                     Zaak = zaakUrl,
                     AardRelatieWeergave = string.Empty,
                     Titel = string.Empty,
                     Beschrijving = string.Empty,
-                    Registratiedatum = doc.Bijlagedatumtijd?.ElementAtOrDefault(idx) ?? string.Empty,
+                    Registratiedatum = doc.Doelbijlagedatumtijd is { Count: > 0 }
+                        ? DateTimeOffset.FromUnixTimeMilliseconds(doc.Doelbijlagedatumtijd[0]).ToString("yyyy-MM-dd")
+                        : string.Empty,
                     Vernietigingsdatum = null,
                     Status = null,
                 };

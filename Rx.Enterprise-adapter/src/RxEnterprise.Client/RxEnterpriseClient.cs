@@ -59,6 +59,38 @@ internal sealed partial class RxEnterpriseClient(HttpClient httpClient) : IRxEnt
         return (await response.Content.ReadAsStreamAsync(ct), contentType, resolvedName);
     }
 
+    public async Task<IEnumerable<RxZaakDocument>> SearchZaakDocumentsAsync(string zaaknummer, CancellationToken ct = default)
+    {
+        var response = await httpClient.GetAsync($"api/zaak-document/search?search=[bronsleutel]=\"{zaaknummer}\"", ct);
+        await EnsureSuccess(response, ct);
+        var json = Sanitize(await response.Content.ReadAsStringAsync(ct));
+        return JsonSerializer.Deserialize<List<RxZaakDocument>>(json) ?? [];
+    }
+
+    public async Task<RxZaakDocument?> GetZaakDocumentAsync(string doelsleutel, CancellationToken ct = default)
+    {
+        var response = await httpClient.GetAsync($"api/zaak-document/search?search=[doelsleutel]=\"{doelsleutel}\"", ct);
+        await EnsureSuccess(response, ct);
+        var json = Sanitize(await response.Content.ReadAsStringAsync(ct));
+        var results = JsonSerializer.Deserialize<List<RxZaakDocument>>(json) ?? [];
+        return results.FirstOrDefault();
+    }
+
+    public async Task<(Stream Content, string ContentType, string FileName)> DownloadFromRelativeUrlAsync(
+        string relativeUrl, CancellationToken ct = default)
+    {
+        var url = relativeUrl.TrimStart('/');
+        var response = await httpClient.GetAsync(url, ct);
+        await EnsureSuccess(response, ct);
+
+        var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+        var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
+            ?? response.Content.Headers.ContentDisposition?.FileName
+            ?? Path.GetFileName(relativeUrl);
+
+        return (await response.Content.ReadAsStreamAsync(ct), contentType, fileName);
+    }
+
     private static IEnumerable<RxZaak> UnwrapZaken(JsonNode? node)
     {
         if (node is JsonArray arr)
@@ -79,7 +111,8 @@ internal sealed partial class RxEnterpriseClient(HttpClient httpClient) : IRxEnt
     private static async Task EnsureSuccess(HttpResponseMessage response, CancellationToken ct)
     {
         if (response.IsSuccessStatusCode) return;
-        var body = await response.Content.ReadAsStringAsync(ct);
+        var bytes = await response.Content.ReadAsByteArrayAsync(ct);
+        var body = System.Text.Encoding.UTF8.GetString(bytes);
         throw new HttpRequestException(
             $"Rx.Enterprise returned {(int)response.StatusCode} {response.ReasonPhrase}: {body}",
             inner: null,

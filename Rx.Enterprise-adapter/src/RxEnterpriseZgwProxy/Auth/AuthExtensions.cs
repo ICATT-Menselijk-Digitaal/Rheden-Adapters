@@ -28,7 +28,8 @@ public static class AuthExtensions
         services
             .AddAuthorizationBuilder()
             .AddFallbackPolicy("zgw", p =>
-                p.RequireClaim("client_id")
+                p.RequireAuthenticatedUser()
+                 .RequireClaim("client_id")
                  .RequireClaim("user_id")
                  .RequireClaim("user_representation"));
     }
