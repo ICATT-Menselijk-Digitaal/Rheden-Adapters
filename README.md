@@ -1,0 +1,35 @@
+# Rheden Adapters
+
+This repository contains standalone adapters that sync external data sources into the Open Object register. They're developed for the municipality Rheden to make data directly available in [KISS](https://github.com/Klantinteractie-Servicesysteem), a Dutch local government open source project, as part of the [Association of Netherlands Municipalities](https://vng.nl/artikelen/about-the-vng) (VNG) [Common Ground framework](https://commonground.nl/).
+
+## Adapters
+
+| Adapter | Description |
+|---|---|
+| [OpenPdc adapter](openPDC/OpenPdc.Worker/README.md) | Syncs a WordPress-based Products and Services catalog (Producten en Diensten Catalogus) into Open Objects as SDG Kennisartikelen |
+| [Smoelenboek adapter](Smoelenboek/Smoelenboek.Worker/README.md) | Syncs employee ("medewerker") data from Microsoft Entra ID into Open Objects as Medewerker objects |
+| [Rx.Enterprise adapter](Rx.Enterprise-adapter/README.md) | Retrieves Zaken information from Rx.Enterprise for KISS/ITA |
+
+Each adapter has its own README covering how it works, prerequisites, configuration reference, and running instructions.
+
+`Shared/OpenObjects.Client` is a common client library used by the OpenPdc and Smoelenboek adapters to talk to the Open Objects API; it isn't a standalone adapter.
+
+## Running Open Objects with Docker
+
+The OpenPdc and Smoelenboek adapters sync into the same [Open Objects API](https://github.com/maykinmedia/objects-api).
+Download the docker-compose.yaml, but before running the installationscripts do the following steps:
+
+1- Create a `docker/postgres.entrypoint-initdb.d/` directory **in the same directory as your `docker-compose.yml`** and populate it with the DB initialisation scripts from:
+
+> https://github.com/maykinmedia/open-object/tree/master/docker/postgres.entrypoint-initdb.d
+
+2- Create a `docker/setup_configuration/` directory **in the same directory as your `docker-compose.yml`** and populate it with the DB initialisation scripts from:
+
+> https://github.com/maykinmedia/open-object/tree/master/docker/setup_configuration
+
+Then to run Open Objects via `docker-compose`,
+3- Run docker compose: `docker compose up -d --no-build`
+
+4- For loading demo data, run: `docker compose exec web src/manage.py loaddata demodata`
+
+5- For creating user in admin portal, run: `docker compose exec web src/manage.py createsuperuser` and follow the steps

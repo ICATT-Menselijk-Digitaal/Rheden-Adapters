@@ -1,0 +1,53 @@
+publiccodeYmlVersion: 0.5.0
+name: "Rheden Adapters"
+applicationSuite: KISS/ITA
+url: https://github.com/ICATT-Menselijk-Digitaal/Rheden-Adapters
+platforms:
+  - web
+categories:
+  - customer-service-and-support
+  - knowledge-management
+organisation:
+  uri: https://github.com/ICATT-Menselijk-Digitaal
+  name: ICATT
+fundedBy:
+  - name: Rheden municipality
+    uri: https://www.rheden.nl/
+developmentStatus: beta
+softwareType: addon
+intendedAudience:
+  countries:
+    - NL
+description:
+  en:
+    localisedName: "Rheden Adapters"
+    shortDescription: Standalone adapters that sync external data sources (a
+      Products and Services catalog, Microsoft Entra ID, Rx.Enterprise) into
+      the Open Object register for KISS.
+    longDescription: >-
+      Rheden Adapters is a collection of standalone adapters, developed for
+      the municipality Rheden, that sync external data sources into the Open
+      Object register so it's directly available in KISS
+      (https://www.kiss-klantcontact.nl/).
+
+
+      It bundles the OpenPdc adapter (fetches products from a WordPress-based
+      "Products and Services catalog" and syncs them as SDG Kennisartikelen
+      into Open Objects), the Smoelenboek adapter (syncs employee data from
+      Microsoft Entra ID into Open Objects as Medewerker objects), and the
+      Rx.Enterprise adapter (retrieves Zaken information from Rx.Enterprise
+      for KISS/ITA).
+    documentation: https://github.com/ICATT-Menselijk-Digitaal/Rheden-Adapters
+    features:
+      - Makes JSON/HTTPS API calls
+legal:
+  license: EUPL-1.2
+maintenance:
+  type: internal
+  contacts:
+    - name: ICATT
+      email: office@icatt.nl
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en

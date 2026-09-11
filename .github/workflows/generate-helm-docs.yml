@@ -3,8 +3,12 @@ name: Generate Helm documentation
 on:
   pull_request:
     paths:
-      - "charts/rx-enterprise-adapter/values.yaml"
-      - "charts/rx-enterprise-adapter/Chart.yaml"
+      - "openPDC/charts/openpdc-adapter/values.yaml"
+      - "openPDC/charts/openpdc-adapter/Chart.yaml"
+      - "Smoelenboek/charts/smoelenboek-adapter/values.yaml"
+      - "Smoelenboek/charts/smoelenboek-adapter/Chart.yaml"
+      - "Rx.Enterprise-adapter/charts/rx-enterprise-adapter/values.yaml"
+      - "Rx.Enterprise-adapter/charts/rx-enterprise-adapter/Chart.yaml"
 
 permissions:
   contents: write

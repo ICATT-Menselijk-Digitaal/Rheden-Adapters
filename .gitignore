@@ -1,0 +1,10 @@
+bin/
+obj/
+.env
+*.user
+.vs/
+.idea/
+.vscode/
+*.swp
+.DS_Store
+values.local.yaml

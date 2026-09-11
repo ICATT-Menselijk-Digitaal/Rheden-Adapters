@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/shared/">
+    <Project Path="Shared/OpenObjects.Client/OpenObjects.Client.csproj" />
+  </Folder>
+  <Folder Name="/openpdc/">
+    <Project Path="openPDC/OpenPdc.Adapter/OpenPdc.Adapter.csproj" />
+    <Project Path="openPDC/OpenPdc.Client/OpenPdc.Client.csproj" />
+    <Project Path="openPDC/OpenPdc.Worker/OpenPdc.Worker.csproj" />
+  </Folder>
+  <Folder Name="/smoelenboek/">
+    <Project Path="Smoelenboek/Entra.Client/Entra.Client.csproj" />
+    <Project Path="Smoelenboek/Smoelenboek.Adapter/Smoelenboek.Adapter.csproj" />
+    <Project Path="Smoelenboek/Smoelenboek.Worker/Smoelenboek.Worker.csproj" />
+  </Folder>
+  <Folder Name="/rx-enterprise/">
+    <Project Path="Rx.Enterprise-adapter/src/RxEnterprise.Client/RxEnterprise.Client.csproj" />
+    <Project Path="Rx.Enterprise-adapter/src/RxEnterpriseZgwProxy/RxEnterpriseZgwProxy.csproj" />
+  </Folder>
+</Solution>

@@ -82,7 +82,7 @@ jobs:
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           context: .
-          file: src/OpenPdc/OpenPdc.Worker/Dockerfile
+          file: openPDC/OpenPdc.Worker/Dockerfile
           platforms: linux/amd64
           push: ${{ fromJSON(env.SHOULD_PUSH) }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -99,11 +99,11 @@ jobs:
           version: v3.8.1
 
       - name: Update chart dependencies
-        working-directory: charts/${{ env.CHART_NAME }}
+        working-directory: openPDC/charts/${{ env.CHART_NAME }}
         run: helm dependency update
 
       - name: Test Helm chart
-        working-directory: charts/${{ env.CHART_NAME }}
+        working-directory: openPDC/charts/${{ env.CHART_NAME }}
         run: |
           helm template . --debug \
             --set schedule="0 * * * *" \
@@ -119,13 +119,13 @@ jobs:
         uses: mikefarah/yq@751d8ad57b84f1794661bc70c0afb92a22ad7b3c # v4.53.2
         with:
           cmd: |
-            yq eval '.appVersion = "${{ env.VERSION }}"' -i charts/${{ env.CHART_NAME }}/Chart.yaml
-            yq eval '.version = "${{ env.VERSION }}"' -i charts/${{ env.CHART_NAME }}/Chart.yaml
-            yq eval '.image.tag = "${{ env.VERSION }}"' -i charts/${{ env.CHART_NAME }}/values.yaml
+            yq eval '.appVersion = "${{ env.VERSION }}"' -i openPDC/charts/${{ env.CHART_NAME }}/Chart.yaml
+            yq eval '.version = "${{ env.VERSION }}"' -i openPDC/charts/${{ env.CHART_NAME }}/Chart.yaml
+            yq eval '.image.tag = "${{ env.VERSION }}"' -i openPDC/charts/${{ env.CHART_NAME }}/values.yaml
 
       - name: Push Helm chart to OCI
         if: ${{ fromJson(env.SHOULD_RELEASE) }}
-        working-directory: charts
+        working-directory: openPDC/charts
         run: |
           CHART_URL_LOWERCASE=$(echo "${{ env.CHART_URL }}" | tr '[:upper:]' '[:lower:]')
           helm package ./${{ env.CHART_NAME }}

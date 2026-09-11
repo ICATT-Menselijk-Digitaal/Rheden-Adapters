@@ -27,7 +27,7 @@ Afdeling objects themselves are **not** synced by this adapter — they're expec
 
 
 
-See the main [README](../../../README.md#running-open-objects-with-docker) for instructions on running Open Objects locally via `docker-compose`.
+See the main [README](../../README.md#running-open-objects-with-docker) for instructions on running Open Objects locally via `docker-compose`.
 
 ## Configuration reference
 
@@ -51,6 +51,6 @@ All values can be set as environment variables, or user secrets, or in `appsetti
 ## Running
 
 ```bash
-dotnet run --project src/Smoelenboek/Smoelenboek.Worker/Smoelenboek.Worker.csproj
+dotnet run --project Smoelenboek/Smoelenboek.Worker/Smoelenboek.Worker.csproj
 ```
 or run it from Visual Studio with Smoelenboek.Worker as startupproject
