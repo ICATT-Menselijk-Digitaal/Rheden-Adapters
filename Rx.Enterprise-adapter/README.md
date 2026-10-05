@@ -130,6 +130,24 @@ The `{id}` segment is always a URL-safe base64 encoding of the original key, wri
 | `omschrijving` | decoded status name (`afhandelingsstatus`) |
 | `omschrijvingGeneriek` | empty string |
 
+### Zaken for a person (BSN)
+
+```text
+GET /zaken/api/v1/zaken?rol__betrokkeneIdentificatie__natuurlijkPersoon__inpBsn=<bsn>
+```
+
+KISS uses this call to fill the Zaken tab after a person search. The adapter calls `GET /api/zaak-betrokkene/search?search=[doelschema]="np" and [doelsleutel]="<bsn>"` and maps every returned record to a zaak, whatever the person's role (`context`). Records are deduplicated on `bronsleutel`. A BSN that is not exactly 9 digits returns an empty list without calling Rx.Enterprise. If `identificatie` is also present, the zaaknummer search is used instead.
+
+| KISS/ZGW field | Rx.Enterprise field | Notes |
+| --- | --- | --- |
+| `identificatie` | `bronsleutel` | |
+| `omschrijving` | `bronbetreft` | |
+| `zaaktype` | `bronzaaktypesleutel` | URL: `/catalogi/api/v1/zaaktypen/{base64(bronzaaktypesleutel)}` |
+| `registratiedatum` | `bronboekdatum` | Unix ms timestamp, converted to `yyyy-MM-dd`. |
+| `startdatum` | `bronstartdatum` | |
+| `status` | `bronafhandelingsstatus` | URL: `/zaken/api/v1/statussen/{base64(bronafhandelingsstatus)}` |
+| `toelichting` | none | Empty string. |
+
 ### Documents and attachments
 
 ```text

@@ -31,6 +31,24 @@ public static class ZakenMapper
         Toelichting = string.Empty,
     };
 
+    public static ZgwZaak ToZgwZaak(RxZaakBetrokkene betrokkene, string selfUrl, string baseUrl) => new()
+    {
+        Url = selfUrl,
+        Uuid = betrokkene.Bronsleutel ?? string.Empty,
+        Identificatie = betrokkene.Bronsleutel ?? string.Empty,
+        Omschrijving = betrokkene.Bronbetreft ?? string.Empty,
+        Bronorganisatie = string.Empty,
+        Zaaktype = betrokkene.Bronzaaktypesleutel is { Length: > 0 } s
+            ? $"{baseUrl}/catalogi/api/v1/zaaktypen/{Base64Encoder.Encode(s)}"
+            : string.Empty,
+        Registratiedatum = betrokkene.Bronboekdatum ?? string.Empty,
+        Startdatum = betrokkene.Bronstartdatum ?? string.Empty,
+        Status = betrokkene.Bronafhandelingsstatus is { Length: > 0 } status
+            ? $"{baseUrl}/zaken/api/v1/statussen/{Base64Encoder.Encode(status)}"
+            : string.Empty,
+        Toelichting = string.Empty,
+    };
+
     public static ZgwStatus ToZgwStatus(string statusName, string selfUrl, string baseUrl) => new()
     {
         Url = selfUrl,

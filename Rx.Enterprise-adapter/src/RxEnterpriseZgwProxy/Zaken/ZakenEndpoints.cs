@@ -16,7 +16,22 @@ public static class ZakenEndpoints
 
             var query = request.Query["identificatie"].FirstOrDefault() ?? string.Empty;
             if (string.IsNullOrEmpty(query))
-                return Results.Ok(ZakenMapper.ToPaginatedResult(Array.Empty<ZgwZaak>()));
+            {
+                var bsn = request.Query["rol__betrokkeneIdentificatie__natuurlijkPersoon__inpBsn"].FirstOrDefault() ?? string.Empty;
+                if (!IsValidBsn(bsn))
+                    return Results.Ok(ZakenMapper.ToPaginatedResult(Array.Empty<ZgwZaak>()));
+
+                var betrokkenen = await rxClient.SearchZaakBetrokkenenByBsnAsync(bsn, ct);
+
+                // a person can be linked to the same zaak more than once, e.g. with different roles
+                var zakenForBsn = betrokkenen
+                    .Where(b => !string.IsNullOrEmpty(b.Bronsleutel))
+                    .DistinctBy(b => b.Bronsleutel)
+                    .Select(b => ZakenMapper.ToZgwZaak(b, $"{baseUrl}/zaken/api/v1/zaken/{b.Bronsleutel}", baseUrl))
+                    .ToArray();
+
+                return Results.Ok(ZakenMapper.ToPaginatedResult(zakenForBsn));
+            }
             var zaken = await rxClient.SearchZaakAsync(query, ct);
 
             var zaakObjects = zaken.Select(zaak =>
@@ -91,4 +106,8 @@ public static class ZakenEndpoints
         
         return app;
     }
+
+    // the BSN ends up in the Rx.Enterprise search, so only allow exactly 9 digits
+    private static bool IsValidBsn(string bsn) =>
+        bsn.Length == 9 && bsn.All(char.IsAsciiDigit);
 }
