@@ -67,6 +67,22 @@ internal sealed partial class RxEnterpriseClient(HttpClient httpClient) : IRxEnt
         return JsonSerializer.Deserialize<List<RxZaakDocument>>(json) ?? [];
     }
 
+    private static readonly string[] ZaakBetrokkeneFields =
+    [
+        "bronsleutel", "bronbetreft", "brononderwerp", "bronstartdatum", "bronboekdatum",
+        "bronafhandelingsstatus", "bronzaaktypesleutel", "context",
+    ];
+
+    public async Task<IEnumerable<RxZaakBetrokkene>> SearchZaakBetrokkenenByBsnAsync(string bsn, CancellationToken ct = default)
+    {
+        var search = Uri.EscapeDataString($"[doelschema]=\"np\" and [doelsleutel]=\"{bsn}\"");
+        var fields = string.Join("", ZaakBetrokkeneFields.Select(f => $"&fields={f}"));
+        var response = await httpClient.GetAsync($"api/zaak-betrokkene/search?search={search}{fields}", ct);
+        await EnsureSuccess(response, ct);
+        var json = Sanitize(await response.Content.ReadAsStringAsync(ct));
+        return JsonSerializer.Deserialize<List<RxZaakBetrokkene>>(json) ?? [];
+    }
+
     public async Task<RxZaakDocument?> GetZaakDocumentAsync(string doelsleutel, CancellationToken ct = default)
     {
         var response = await httpClient.GetAsync($"api/zaak-document/search?search=[doelsleutel]=\"{doelsleutel}\"", ct);

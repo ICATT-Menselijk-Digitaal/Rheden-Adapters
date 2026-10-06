@@ -1,3 +1,4 @@
+using System.Net;
 using RxEnterprise.Client;
 using RxEnterpriseZgwProxy.Shared;
 
@@ -13,11 +14,22 @@ public static class CatalogiEndpoints
             CancellationToken ct) =>
         {
             var sleutel = Base64Encoder.Decode(id);
-            var zaaktype = await rxClient.GetZaaktypeAsync(sleutel, ct);
+
+            RxZaaktype? zaaktype = null;
+            try
+            {
+                zaaktype = await rxClient.GetZaaktypeAsync(sleutel, ct);
+            }
+            // a zaak can refer to a zaaktype that doesn't exist in Rx.Enterprise;
+            // KISS fails the whole zaken list if one zaaktype can't be fetched
+            catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+            {
+            }
+
             return Results.Ok(new ZgwZaaktype
             {
-                Id = zaaktype.Sleutel ?? sleutel,
-                Omschrijving = zaaktype.Onderwerp ?? string.Empty,
+                Id = zaaktype?.Sleutel ?? sleutel,
+                Omschrijving = zaaktype is null ? sleutel : zaaktype.Onderwerp ?? string.Empty,
             });
         });
 
