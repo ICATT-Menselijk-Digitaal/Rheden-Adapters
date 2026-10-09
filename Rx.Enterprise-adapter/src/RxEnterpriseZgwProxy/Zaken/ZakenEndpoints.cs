@@ -1,3 +1,4 @@
+using System.Net;
 using RxEnterprise.Client;
 using RxEnterpriseZgwProxy.Shared;
 
@@ -5,6 +6,8 @@ namespace RxEnterpriseZgwProxy.Zaken;
 
 public static class ZakenEndpoints
 {
+    private const string LoggerCategory = "RxEnterpriseZgwProxy.Zaken";
+
     public static IEndpointRouteBuilder MapZakenEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/zaken/api/v1/zaken", async (
@@ -48,17 +51,30 @@ public static class ZakenEndpoints
             string id,
             HttpRequest request,
             IRxEnterpriseClient rxClient,
+            ILoggerFactory loggerFactory,
             CancellationToken ct) =>
         {
             var baseUrl = $"{request.Scheme}://{request.Host}";
             var selfUrl = $"{baseUrl}/zaken/api/v1/zaken/{id}";
-            var zaak = await rxClient.GetZaakAsync(id, ct);
+            RxZaak zaak;
+            try
+            {
+                zaak = await rxClient.GetZaakAsync(id, ct);
+            }
+            // a zaak found via zaak-betrokkene is not always readable via data/zaak
+            catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                loggerFactory.CreateLogger(LoggerCategory).LogWarning("Rx.Enterprise returned 404 for zaak {ZaakId}", id);
+                return Results.NotFound();
+            }
+
             return Results.Ok(ZakenMapper.ToZgwZaak(zaak, selfUrl, baseUrl));
         });
 
         app.MapGet("/zaken/api/v1/rollen", async (
             HttpRequest request,
             IRxEnterpriseClient rxClient,
+            ILoggerFactory loggerFactory,
             CancellationToken ct) =>
         {
             var zaakUrl = request.Query["zaak"].FirstOrDefault() ?? string.Empty;
@@ -66,8 +82,20 @@ public static class ZakenEndpoints
 
             if (string.IsNullOrEmpty(zaakId))
                 return Results.Ok(ZakenMapper.ToPaginatedResult(Array.Empty<ZgwRol>()));
+            
+            RxZaak zaak;
+            try
+            {
+                zaak = await rxClient.GetZaakAsync(zaakId, ct);
+            }
+            // a zaak found via zaak-betrokkene is not always readable via data/zaak;
+            // KISS fails the whole zaken list if the rollen of one zaak can't be fetched
+            catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                loggerFactory.CreateLogger(LoggerCategory).LogWarning("Rx.Enterprise returned 404 for zaak {ZaakId} for /rollen", zaakId);
+                return Results.Ok(ZakenMapper.ToPaginatedResult(Array.Empty<ZgwRol>()));
+            }
 
-            var zaak = await rxClient.GetZaakAsync(zaakId, ct);
             return Results.Ok(ZakenMapper.ToPaginatedResult(ZakenMapper.ToZgwRollen(zaak)));
         });
 
